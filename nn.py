@@ -1,77 +1,7 @@
 import numpy as np
-import matplotlib.pyplot as plt
-
-import keras
-import numpy as np
-import livelossplot
-from keras.losses import *
-from keras.layers import *
-from keras.optimizers import *
-from keras import activations
-import matplotlib.pyplot as plt
-from keras.datasets import mnist
-from keras.models import Sequential
-from IPython.display import clear_output
-from keras.utils import to_categorical as sparse_categorical
-
-
-
-def tanh(arr):
-    return np.tanh(arr)
-
-def softmax(arr):
-    exp = np.exp(np.asarray(arr))
-    return exp / exp.sum(1)[:, None]
-
-def to_categorical(y):
-    uniques = np.unique(y)
-    sparse_cat = np.zeros((len(y), np.max(y)+1))
-    sparse_cat[np.arange(len(y)), y] = True
-    res = sparse_cat[:, uniques]
-    
-    return res
-
-def bug_print(string):
-	print("*"*40)
-	print("*"*40)
-	print("\n"*2)
-	print(string)
-	print("\n"*2)
-	print("*"*40)
-	print("*"*40)
-
-
-
-class Layer:
-	def __init__(self, act, output_size, name=None, input_size=None, weights=None, biases=None):
-		self.act = act
-		self.biases = biases
-		self.weights = weights
-		self.input_size = input_size 
-		self.output_size = output_size 
-
-		self.next_layer = None
-		self.last_activation = None
-		self.last_delta_error = None
-
-	def init_weights(self):
-		# implementation of Xavier init scheme if weights not given already
-		if self.weights == None:
-			layer_shape = (self.input_size, self.output_size)
-			xavier_weights = np.random.normal(loc=0, scale=1/np.average(layer_shape), size=layer_shape)
-			self.weights =  xavier_weights
-
-		if self.biases == None:
-			self.biases = np.zeros(self.output_size)
-
-	def forward_pass(self, inp):
-		dot_prod = np.dot(inp, self.weights) + self.biases
-		self.last_activation = self.act(dot_prod)
-		return self.last_activation
-
-	def update_weights(self):
-		NotImplementedError
-
+from utils import *
+from layer import Layer
+from activations import *
 
 
 
@@ -87,7 +17,6 @@ class Net:
 			layer.input_size = self.layers[-1].output_size
 
 		layer.name = "layer_%d" % self.num_layers
-		layer.init_weights()
 		self.layers.append(layer)
 
 	def set_weigts(self, W):
@@ -100,11 +29,39 @@ class Net:
 			old_weights_shape = (self.layers[i].input_size, self.layers[i].output_size)
 			old_biases_shape  = (self.layers[i].output_size,)
 
-			assert old_weights_shape == new_weights_shape, "weight shape mismatch on layer %s" % self.layers[i].name
-			assert old_biases_shape  == new_biases_shape,  "biases shape mismatch on layer %s" % self.layers[i].name
+			assert old_weights_shape == new_weights_shape, \
+										"weight shape mismatch on layer %s" % self.layers[i].name
+			assert old_biases_shape  == new_biases_shape,  \
+										"biases shape mismatch on layer %s" % self.layers[i].name
 
 			self.layers[i].weights = W[2*i]
 			self.layers[i].biases  = W[2*i+1]
+
+	def compile(self, lr=0.005, momentum=0):
+		for i, lyr in enumerate(self.layers):
+			lyr.lr = lr
+			lyr.momentum = momentum
+
+			lyr.init_weights()
+			lyr.gradients = np.zeros(lyr.weights.shape)
+
+			lyr.next_layer = self.layers[i+1] if i != self.num_layers-1 else None
+
+
+	def accurecy(self, x, y):
+		y_pred = self.forward_pass(x) > 0.5
+
+		return np.average(y_pred == y)
+
+	def metrics(self, x, y):
+		y_prob = self.forward_pass(x)
+		y_pred = y_prob > 0.5
+
+		acc =  np.average(y_pred == y)
+		loss = -1*np.average(np.log(y_prob[y.astype(bool)]))
+
+		return acc, loss
+
 
 	def forward_pass(self, inp):
 		lyr_outs = inp
@@ -113,9 +70,10 @@ class Net:
 
 		return lyr_outs
 
-	def backward_pass(self):
-		for lyr in self.layers:
-			info = lyr.backward_pass(info)
+	def backward_pass(self, y):
+		for lyr in self.layers[::-1]:
+			lyr.backward_pass(y)
+
 
 	def predict(self, inp):
 		scores = self.forward_pass(inp)
@@ -123,29 +81,26 @@ class Net:
 
 
 
+
 if __name__ == "__main__":
 	net = Net()
-	net.add_layer(Layer(act=tanh, output_size=10, input_size=3))
-	net.add_layer(Layer(act=tanh, output_size=10))
+	net.add_layer(Layer(act=tanh, output_size=100, input_size=784))
+	net.add_layer(Layer(act=tanh, output_size=100))
 	net.add_layer(Layer(act=tanh, output_size=10))
 	net.add_layer(Layer(act=softmax, output_size=2))
 
-	model = Sequential()
-	act = activations.tanh
-	model.add(Dense(input_shape = (3,), units=10, activation=act))
-	model.add(Dense(10, activation='tanh'))
-	model.add(Dense(10, activation='tanh'))
-	model.add(Dense(2, activation='softmax'))
+	net.compile(lr=0.05, momentum=0.9)
 
-	opt = Nadam(2e-4)
-	model.compile(optimizer=opt, loss=categorical_crossentropy, metrics=['accuracy'])
+	x = np.random.uniform(0,1,(100, 784))
+	y = np.random.randint(0,2,(100, 2))
+	net.forward_pass(x)
+	net.backward_pass(y)
+
+	bug_print("No exceptions on random data!")
 
 
-	bug_print("setting the weights")
-	W = model.get_weights()
-	net.set_weigts(W)
 
-	inp = np.random.normal(0,1,(4,3))
-	print(model.predict(inp)-net.forward_pass(inp))
+
+
 
 
