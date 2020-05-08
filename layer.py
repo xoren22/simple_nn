@@ -28,6 +28,11 @@ class Layer:
 		if self.biases == None:
 			self.biases = np.zeros(self.output_size)
 
+	def init_random_map(self, num_classes):
+		# (500, 50) - (50, 10)
+		self.random_map = np.random.choice([-1,1], (self.output_size, num_classes))
+
+
 	def forward_pass(self, inp):
 		self.input = inp
 		dot_prod = np.dot(inp, self.weights) + self.biases
@@ -36,6 +41,9 @@ class Layer:
 		return self.activation
 
 	def backward_pass(self, y):
+		self.alt_backward_pass(y)
+		return 
+
 		if self.act == softmax:
 			self.delta_error = self.activation - y
 
@@ -52,8 +60,17 @@ class Layer:
 
 
 	def alt_backward_pass(self, y):
-			# activation_limits = np.array([-1,1])
-			# y_fake = activation_limits[y.T[0]]
-			# diff = np.expand_dims(y_fake, 1) - self.activation
-			# self.delta_error =  (diff)**2 * np.sign(diff)
-			pass
+		if self.act == softmax:
+			self.delta_error = self.activation - y
+
+		elif self.act == tanh:
+			tanh_deriv = 1 - self.activation**2
+			# (100, 15) = (100, 10) @ (15, 10).T 
+			# self.delta_error = tanh_deriv * (self.next_layer.delta_error @ self.next_layer.weights.T)
+			# (100,50)
+			false_target = y @ self.random_map.T
+			self.delta_error =  self.activation - false_target
+
+		batch_gradients = (self.input.T @ self.delta_error)/len(self.input)
+		self.gradients = (batch_gradients+self.gradients*self.momentum)/(1+self.momentum)
+		self.weights -= self.gradients * self.lr

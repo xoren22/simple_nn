@@ -64,6 +64,7 @@ class Net:
 			lyr.momentum = momentum
 
 			lyr.init_weights()
+			lyr.init_random_map(self.layers[-1].output_size)
 			lyr.gradients = np.zeros(lyr.weights.shape)
 
 			lyr.next_layer = self.layers[i+1] if i != self.num_layers-1 else None

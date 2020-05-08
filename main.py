@@ -14,7 +14,7 @@ net = Net()
 net.add_layer(Layer(act=tanh, output_size=50, input_size=784))
 net.add_layer(Layer(act=tanh, output_size=50))
 net.add_layer(Layer(act=tanh, output_size=50))
-net.add_layer(Layer(act=softmax, output_size=2))
+net.add_layer(Layer(act=softmax, output_size=10))
 
 net.compile(lr=0.01, momentum=0.9)
 
@@ -24,7 +24,7 @@ x_train = x_train.reshape(60000, 784)/255
 x_test  = x_test.reshape (10000, 784)/255
 
 
-classes = (7,1)
+classes = np.arange(10)
 
 inds_train = [y in classes for y in y_train]
 inds_test  = [y in classes for y in y_test]
@@ -41,14 +41,14 @@ print((x_train.shape, y_train.shape), (x_test.shape, y_test.shape))
 
 print('\n'*2,'-'*100, '\n'*2)
 
-for i in range(1000):
-	inds = np.random.choice(np.arange(len(x_train)), 500)
+for i in range(15000):
+	inds = np.random.choice(np.arange(len(x_train)), 50)
 	x_batch, y_batch = x_train[inds], y_train[inds]
 
 	net.forward_pass(x_batch)
 	net.backward_pass(y_batch)
 
-	if i % 100 == 0:
+	if i % 500 == 0:
 		acc, loss = net.metrics(x_test, y_test)	
 		print(i, acc, loss, sep='\t\t\t')
 
