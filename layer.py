@@ -22,7 +22,7 @@ class Layer:
 		# implementation of Xavier init scheme if weights not given already
 		if self.weights == None:
 			layer_shape = (self.input_size, self.output_size)
-			xavier_weights = np.random.normal(loc=0, scale=1/np.average(layer_shape), size=layer_shape)
+			xavier_weights = np.random.normal(loc=0, scale=4/np.average(layer_shape), size=layer_shape)
 			self.weights =  xavier_weights
 
 		if self.biases == None:
@@ -41,7 +41,10 @@ class Layer:
 
 		elif self.act == tanh:
 			tanh_deriv = 1 - self.activation**2
-			self.delta_error = self.next_layer.delta_error @ self.next_layer.weights.T
+			# (100, 15) = (100, 10) @ (15, 10).T 
+			self.delta_error = tanh_deriv * (self.next_layer.delta_error @ self.next_layer.weights.T)
+			# self.delta_error = tanh_deriv**2 * (np.average(self.activation) - self.activation)**2 * \
+			# 								np.sign((np.average(self.activation) - self.activation))
 
 		batch_gradients = (self.input.T @ self.delta_error)/len(self.input)
 		self.gradients = (batch_gradients+self.gradients*self.momentum)/(1+self.momentum)

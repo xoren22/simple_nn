@@ -37,9 +37,30 @@ class Net:
 			self.layers[i].weights = W[2*i]
 			self.layers[i].biases  = W[2*i+1]
 
+	def get_weights(self, lyrs=None):
+		if lyrs == None:
+			lyrs = np.arange(self.num_layers)
+
+		weights = []
+		for i in lyrs:
+			weights.append(self.layers[i].weights)
+			weights.append(self.layers[i].biases)
+
+		return weights
+
+	def get_activations(self, lyrs=None):
+		if lyrs == None:
+			lyrs = np.arange(self.num_layers)
+
+		activation = [self.layers[i].activation for i in lyrs]
+
+		return activation
+
+
+
 	def compile(self, lr=0.005, momentum=0):
 		for i, lyr in enumerate(self.layers):
-			lyr.lr = lr
+			lyr.lr = lr # * 10**(-i)
 			lyr.momentum = momentum
 
 			lyr.init_weights()
@@ -49,15 +70,19 @@ class Net:
 
 
 	def accurecy(self, x, y):
-		y_pred = self.forward_pass(x) > 0.5
+		class_number = np.where(y)[1]
+
+		y_pred = np.argmax(self.forward_pass(x), 1)
+		y_true = np.argmax(y, 1)
 
 		return np.average(y_pred == y)
 
 	def metrics(self, x, y):
 		y_prob = self.forward_pass(x)
-		y_pred = y_prob > 0.5
+		y_pred = np.argmax(y_prob, 1)
+		y_true = np.argmax(y, 1)
 
-		acc =  np.average(y_pred == y)
+		acc =  np.average(y_pred == y_true)
 		loss = -1*np.average(np.log(y_prob[y.astype(bool)]))
 
 		return acc, loss
@@ -96,8 +121,10 @@ if __name__ == "__main__":
 	net.forward_pass(x)
 	net.backward_pass(y)
 
-	bug_print("No exceptions on random data!")
+	net.get_activations()
+	net.get_weights()
 
+	bug_print("No exceptions on random data!")
 
 
 
