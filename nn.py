@@ -1,10 +1,9 @@
 import numpy as np
 from utils import *
 from layer import Layer
+from optimisers import *
 from activations import *
-
-
-
+from copy import deepcopy
 
 class Net:
 	def __init__(self):
@@ -52,22 +51,22 @@ class Net:
 		if lyrs == None:
 			lyrs = np.arange(self.num_layers)
 
-		activation = [self.layers[i].activation for i in lyrs]
+		activation = [self.layers[i].activations for i in lyrs]
 
 		return activation
 
 
 
-	def compile(self, lr=0.005, momentum=0):
+	def compile(self, optimiser=SGD):
 		for i, lyr in enumerate(self.layers):
-			lyr.lr = lr # * 10**(-i)
-			lyr.momentum = momentum
+			lyr.optimiser = deepcopy(optimiser)
 
-			lyr.init_weights()
-			lyr.init_random_map(self.layers[-1].output_size)
-			lyr.gradients = np.zeros(lyr.weights.shape)
+			if lyr.weights is None:
+				lyr.init_weights()
+				lyr.init_random_map(self.layers[-1].output_size)
+				lyr.gradients = np.zeros(lyr.weights.shape)
 
-			lyr.next_layer = self.layers[i+1] if i != self.num_layers-1 else None
+				lyr.next_layer = self.layers[i+1] if i != self.num_layers-1 else None
 
 
 	def accurecy(self, x, y):
@@ -85,8 +84,9 @@ class Net:
 
 		acc =  np.average(y_pred == y_true)
 		loss = -1*np.average(np.log(y_prob[y.astype(bool)]))
+		ginni = [lyr.ginni() for lyr in self.layers]
 
-		return acc, loss
+		return acc, loss, ginni
 
 
 	def forward_pass(self, inp):
@@ -115,7 +115,7 @@ if __name__ == "__main__":
 	net.add_layer(Layer(act=tanh, output_size=10))
 	net.add_layer(Layer(act=softmax, output_size=2))
 
-	net.compile(lr=0.05, momentum=0.9)
+	net.compile(optimiser=SGD(0.01, 0.9))
 
 	x = np.random.uniform(0,1,(100, 784))
 	y = np.random.randint(0,2,(100, 2))
