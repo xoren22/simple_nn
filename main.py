@@ -33,9 +33,9 @@ y_test  = to_categorical(y_test[inds_test]).astype(np.int)
 y_train = to_categorical(y_train[inds_train]).astype(np.int)
 
 net = Net()
-net.add_layer(Layer(act=tanh, output_size=50, input_size=784))
-net.add_layer(Layer(act=tanh, output_size=50))
-net.add_layer(Layer(act=tanh, output_size=50))
+net.add_layer(Layer(act=relu, output_size=50, input_size=784))
+net.add_layer(Layer(act=relu, output_size=50))
+net.add_layer(Layer(act=relu, output_size=50))
 net.add_layer(Layer(act=softmax, output_size=num_classes))
 
 net.compile(optimiser=Adam())
@@ -49,7 +49,7 @@ print('\n'*2,'-'*100, '\n'*2)
 # activation_logs = np.zeros((2000,1000,50))
 # delta_error_logs = np.zeros((2000,1000,50))
 
-for i in range(40):
+for i in range(40000):
 	inds = np.random.choice(np.arange(len(x_train)), 128)
 	x_batch, y_batch = x_train[inds], y_train[inds]
 
@@ -63,7 +63,7 @@ for i in range(40):
 
 
 
-	if i % 100 == 0:
+	if i % 1000 == 0:
 		test_acc, test_loss, train_ginni = net.metrics(x_test, y_test)	
 		train_acc, train_loss, test_ginni = net.metrics(x_train[:10000], y_train[:10000])	
 

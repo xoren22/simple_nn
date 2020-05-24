@@ -4,9 +4,9 @@ from activations import *
 
 class Layer:
 	def __init__(self, act, output_size, input_size=None, name=None, weights=None, biases=None):
-		self.act_function = act
 		self.biases = biases
 		self.weights = weights
+		self.act_function = act()
 		self.input_size = input_size 
 		self.output_size = output_size 
 
@@ -44,26 +44,23 @@ class Layer:
 	def forward_pass(self, inp):
 		self.input = inp
 		dot_prod = np.dot(inp, self.weights) + self.biases
-		self.activations = self.act_function(dot_prod)
+		self.activations = self.act_function.forward(dot_prod)
 		
 		return self.activations
 
 	def ginni(self):
 		return 0
 
-	def exp(self, act, y):
-		return y*self.temp**(y*act) - self.temp**-1
-
 	def backward_pass(self, y):
 		self.alt_backward_pass(y); return 
 		self.y = y
 
-		if self.act_function == softmax:
+		if self.act_function.name == 'softmax':
 			self.delta_error = self.activations - self.y
 
-		elif self.act_function == tanh:
-			tanh_deriv = 1 - self.activations**2
-			self.delta_error = (self.next_layer.delta_error @ self.next_layer.weights.T) * tanh_deriv
+		else:
+			act_deriv = self.act_function.derivative(self.activations)
+			self.delta_error = (self.next_layer.delta_error @ self.next_layer.weights.T) * act_deriv
 				
 		raw_batch_gradients = (self.input.T @ self.delta_error)/len(self.input)
 		self.gradients = self.optimiser.get_update(raw_batch_gradients)
@@ -79,7 +76,7 @@ class Layer:
 			false_target = self.y @ self.random_map.T
 
 			tanh_deriv = 1 - self.activations**2
-			self.delta_error = sigmoid(self.activations) - false_target
+			self.delta_error = np.maximum(self.activations, 0) #sigmoid(self.activations) - false_target
 
 		raw_batch_gradients = (self.input.T @ self.delta_error)/len(self.input)
 		
