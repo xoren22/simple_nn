@@ -33,41 +33,46 @@ y_test  = to_categorical(y_test[inds_test]).astype(np.int)
 y_train = to_categorical(y_train[inds_train]).astype(np.int)
 
 net = Net()
-net.add_layer(Layer(act=relu, output_size=50, input_size=784))
-net.add_layer(Layer(act=relu, output_size=50))
-net.add_layer(Layer(act=relu, output_size=50))
+net.add_layer(Layer(act=tanh, output_size=50, input_size=784))
+net.add_layer(Layer(act=tanh, output_size=50))
+net.add_layer(Layer(act=tanh, output_size=50))
 net.add_layer(Layer(act=softmax, output_size=num_classes))
 
 net.compile(optimiser=Adam())
 
-print('\n'*3,'-'*100, '\n'*3)
-bug_print(((x_train.shape, y_train.shape), (x_test.shape, y_test.shape)))
-print('\n'*2,'-'*100, '\n'*2)
+
+
+
+
+batch_size = 32
+num_epochs = 30
+
+shuffled_inds = np.arange(len(x_train))
+log = LogPrint(["train_acc", "test_acc", "train_loss","test_loss"])
+
+for epoch in range(num_epochs):
+	test_acc, test_loss, train_ginni = net.metrics(x_test, y_test)	
+	train_acc, train_loss, test_ginni = net.metrics(x_train[:10000], y_train[:10000])	
+	log.print((train_acc,test_acc,train_loss,test_loss))
+	for i in range(0, len(x_train), batch_size):
+		batch_inds = np.arange(i,i+batch_size)
+		x_batch, y_batch = x_train[batch_inds], y_train[batch_inds]
+
+		net.forward_pass(x_batch)
+		net.backward_pass(y_batch)
+
+	np.random.shuffle(shuffled_inds)
+
 
 
 # y_logs = np.zeros((2000,1000, num_classes))
 # activation_logs = np.zeros((2000,1000,50))
 # delta_error_logs = np.zeros((2000,1000,50))
 
-for i in range(40000):
-	inds = np.random.choice(np.arange(len(x_train)), 128)
-	x_batch, y_batch = x_train[inds], y_train[inds]
-
-	net.forward_pass(x_batch)
-	net.backward_pass(y_batch)
-
-	# if i % 5 == 0:
-	# 	activation_logs[i//5] = net.layers[3].activations
-	# 	delta_error_logs[i//5] = net.layers[3].delta_error
-	# 	y_logs[i//5] = y_batch
-
-
-
-	if i % 1000 == 0:
-		test_acc, test_loss, train_ginni = net.metrics(x_test, y_test)	
-		train_acc, train_loss, test_ginni = net.metrics(x_train[:10000], y_train[:10000])	
-
-		print(i, train_acc, test_acc, train_loss, test_loss, sep='\t\t\t')
+# if i % 5 == 0:
+# 	activation_logs[epoch//5] = net.layers[3].activations
+# 	delta_error_logs[i//5] = net.layers[3].delta_error
+# 	y_logs[i//5] = y_batch
 
 # np.save('./logs/y_logs', y_logs)
 # np.save('./logs/activation_logs', activation_logs)

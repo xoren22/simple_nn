@@ -30,5 +30,5 @@ class relu:
 	def derivative(self, inp):
 		return inp > 0
 
-def sigmoid(self, inp, tmp=1):
+def sigmoid(inp, tmp=1):
 	1/(1 + np.exp(-inp*tmp)) 

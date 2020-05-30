@@ -52,7 +52,7 @@ class Layer:
 		return 0
 
 	def backward_pass(self, y):
-		self.alt_backward_pass(y); return 
+		# self.alt_backward_pass(y); return 
 		self.y = y
 
 		if self.act_function.name == 'softmax':
@@ -69,14 +69,17 @@ class Layer:
 
 	def alt_backward_pass(self, y):
 		self.y = y
-		if self.act_function == softmax:
+		if self.act_function.name == "softmax":
 			self.delta_error = self.activations - self.y
 
-		elif self.act_function == tanh:
+		elif self.act_function.name == "tanh":
 			false_target = self.y @ self.random_map.T
-
 			tanh_deriv = 1 - self.activations**2
-			self.delta_error = np.maximum(self.activations, 0) #sigmoid(self.activations) - false_target
+			bug_print("false_target "+str(false_target))
+			self.delta_error = sigmoid(self.activations) - false_target
+
+		else:
+			raise Exception("alt_backward_pass is not implemented for this activation yet")
 
 		raw_batch_gradients = (self.input.T @ self.delta_error)/len(self.input)
 		

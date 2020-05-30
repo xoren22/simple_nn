@@ -17,56 +17,35 @@ def dist(x, y, title=None):
 		plt.title(title)
 	plt.show()
 
-def bug_print(string):
-	print("*"*40)
-	print("*"*40)
-	print("\n")
-	print(string)
-	print("\n")
-	print("*"*40)
-	print("*"*40)
 
 
-def plot_acts(acts, y): 
-	"""
-	fig, axarr = plt.subplots(nrows=4, ncols=neurons, sharex=True, sharey=True)
-	fig.set_size_inches(15, 10)
-
-	fig.text(0.5, -0.03, 'Neuron', fontsize=20, ha='center')
-	fig.text(-0.03, 0.5, 'Layer',fontsize=20, va='center', rotation='vertical')
-
-
-	for i in range(layers*neurons):        
-	    axarr[i//neurons, i%neurons].set_xlim(-1.1, 1.1)
-	    axarr[i//neurons, i%neurons].set_ylim(-5, 5)     
-	    axarr[i//neurons, i%neurons].scatter(x=layer_outs[i//neurons][:,i%neurons],y=rand[:500],s=54,
-	                                         c=y_train[inds][:500],alpha=0.5)
-
-	plt.tight_layout() 
-	plt.show()	
+class LogPrint:
+	def __init__(self, metic_names, flush=True):
+		self.first = True
+		self.flush = flush
+		self.metic_names = metic_names
+		self.metic_name_lenghts = [len(m) for m in self.metic_names]
+		self.col_dist = int(max(self.metic_name_lenghts) * 2)
 
 
+	def print(self, new_metrics):
+		if self.first:
+			formated_names = "\n"*20 + "-"*70+"\n"
+			for i, name in enumerate(self.metic_names):
+				formated_names += name + (self.col_dist-self.metic_name_lenghts[i])*" "
+			self.first = False
+
+			formated_names += "  |\n" + "-"*70 + "\n"
+			print(formated_names)
+
+		formated_vals = ""
+		for i, val in enumerate(new_metrics):
+			formated_vals += "%5f"%val + (self.col_dist-len("%5f"%val))*" "
+		print(formated_vals)
 
 
-for epoch in range(epochs): 
-    layer_outs = [get_layer_outputs(x[:500], layer=lyr) for lyr in range(layers)]
-    clear_output(wait=True)
-    fig, axarr = plt.subplots(nrows=4, ncols=neurons, sharex=True, sharey=True)
-    fig.set_size_inches(15, 10)
-    
-    fig.text(0.5, -0.03, 'Neuron', fontsize=20, ha='center')
-    fig.text(-0.03, 0.5, 'Layer',fontsize=20, va='center', rotation='vertical')
-   
-    
-    for i in range(layers*neurons):        
-        axarr[i//neurons, i%neurons].set_xlim(-1.1, 1.1)
-        axarr[i//neurons, i%neurons].set_ylim(-5, 5)     
-        axarr[i//neurons, i%neurons].scatter(x=layer_outs[i//neurons][:,i%neurons],y=rand[:500],s=54,
-                                             c=y_train[inds][:500],alpha=0.5)
-
-    plt.tight_layout() 
-    plt.show()
-
-    model.fit(x, y, epochs=1, batch_size=50, verbose=1)
-    """
-	pass
+if __name__ == '__main__':
+	log = LogPrint(["loss", "accurecy"])
+	for i in range(4):
+		fake_loss, fake_acc = np.random.uniform(0,3), np.random.uniform(0,100)
+		log.print([fake_loss, fake_acc])
