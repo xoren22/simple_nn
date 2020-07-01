@@ -75,7 +75,6 @@ class Layer:
 		elif self.act_function.name == "tanh":
 			false_target = self.y @ self.random_map.T
 			tanh_deriv = 1 - self.activations**2
-			bug_print("false_target "+str(false_target))
 			self.delta_error = sigmoid(self.activations) - false_target
 
 		else:

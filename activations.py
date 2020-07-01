@@ -31,4 +31,4 @@ class relu:
 		return inp > 0
 
 def sigmoid(inp, tmp=1):
-	1/(1 + np.exp(-inp*tmp)) 
+	return 1/(1 + np.exp(-inp*tmp)) 

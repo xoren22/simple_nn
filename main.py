@@ -20,8 +20,8 @@ x_train = x_train.reshape(len(x_train), -1)/255
 x_test  =  x_test.reshape(len(x_test),  -1)/255
 
 
-num_classes = 10
-classes = np.random.choice(np.arange(10), num_classes, replace=False)
+num_classes = 2
+classes = (3,7) # np.random.choice(np.arange(10), num_classes, replace=False)
 
 inds_train = [y in classes for y in y_train]
 inds_test  = [y in classes for y in y_test]
@@ -54,8 +54,8 @@ for epoch in range(num_epochs):
 	test_acc, test_loss, train_ginni = net.metrics(x_test, y_test)	
 	train_acc, train_loss, test_ginni = net.metrics(x_train[:10000], y_train[:10000])	
 	log.print((train_acc,test_acc,train_loss,test_loss))
-	for i in range(0, len(x_train), batch_size):
-		batch_inds = np.arange(i,i+batch_size)
+	for i in range(0, len(x_train)-batch_size, batch_size):
+		batch_inds = np.arange(i,i+batch_size-1)
 		x_batch, y_batch = x_train[batch_inds], y_train[batch_inds]
 
 		net.forward_pass(x_batch)
