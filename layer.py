@@ -75,7 +75,7 @@ class Layer:
 		elif self.act_function.name == "tanh":
 			false_target = self.y @ self.random_map.T
 			tanh_deriv = 1 - self.activations**2
-			self.delta_error = sigmoid(self.activations) - false_target
+			self.delta_error = tanh_deriv * (self.activations - np.array([-1,1])[y[:,0]][:,None])**3
 
 		else:
 			raise Exception("alt_backward_pass is not implemented for this activation yet")

@@ -100,6 +100,10 @@ class Net:
 		for lyr in self.layers[::-1]:
 			lyr.backward_pass(y)
 
+	# def alt_backward_pass(self, y):
+	# 	for lyr in self.layers[::-1]:
+	# 		lyr.alt_backward_pass(y)
+
 
 	def predict(self, inp):
 		scores = self.forward_pass(inp)
