@@ -29,18 +29,6 @@ class Layer:
 
 		self.biases = np.zeros(self.output_size)
 
-	def init_random_map(self, num_classes):
-		self.random_map = np.ones((self.output_size, num_classes))
-		for i in range(len(self.random_map)-1):
-			if num_classes == 2:
-				p = [0.5, 0.5]
-			else:
-				p = 1-np.linspace(-1,1,num_classes)**2
-				p /= sum(p) 
-			num_classes_left = np.random.choice(np.arange(num_classes), p = p)
-			classes_on_left = np.random.choice(np.arange(num_classes), num_classes_left)
-			self.random_map[i, classes_on_left] = 0
-
 	def forward_pass(self, inp):
 		self.input = inp
 		dot_prod = np.dot(inp, self.weights) + self.biases
@@ -63,25 +51,6 @@ class Layer:
 			self.delta_error = (self.next_layer.delta_error @ self.next_layer.weights.T) * act_deriv
 				
 		raw_batch_gradients = (self.input.T @ self.delta_error)/len(self.input)
-		self.gradients = self.optimiser.get_update(raw_batch_gradients)
-		self.weights -= self.gradients
-
-
-	def alt_backward_pass(self, y):
-		self.y = y
-		if self.act_function.name == "softmax":
-			self.delta_error = self.activations - self.y
-
-		elif self.act_function.name == "tanh":
-			false_target = self.y @ self.random_map.T
-			tanh_deriv = 1 - self.activations**2
-			self.delta_error = sigmoid(self.activations) - false_target
-
-		else:
-			raise Exception("alt_backward_pass is not implemented for this activation yet")
-
-		raw_batch_gradients = (self.input.T @ self.delta_error)/len(self.input)
-		
 		self.gradients = self.optimiser.get_update(raw_batch_gradients)
 		self.weights -= self.gradients
 
